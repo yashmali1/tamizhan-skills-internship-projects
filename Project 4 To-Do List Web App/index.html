@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D TaskFlow - Premium Task Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>TaskFlow 3D</h1>
+            <p>Elevate your productivity with style</p>
+        </div>
+
+        <div class="main-card">
+            
+            <div class="input-section">
+                
+                <input style="color: black;" type="text" class="task-input" placeholder="What needs to be done today?" id="taskInput">
+                
+               
+            </div>
+            <div class="input-section" >
+                 <button style="padding-left: 40%; color:black; padding-right: 53%;" class="add-btn" onclick="addTask()">
+                    <span>Add Task</span>
+                </button>
+            </div>
+
+            <div class="filter-section">
+                <button class="filter-btn active" onclick="filterTasks('all')">All Tasks</button>
+                <button class="filter-btn" onclick="filterTasks('pending')">Pending</button>
+                <button class="filter-btn" onclick="filterTasks('completed')">Completed</button>
+            </div>
+
+            <div class="tasks-container" id="tasksContainer">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <h3>No tasks yet</h3>
+                    <p>Add your first task to get started!</p>
+                </div>
+            </div>
+
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-number" id="totalTasks">0</span>
+                    <span class="stat-label">Total</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="pendingTasks">0</span>
+                    <span class="stat-label">Pending</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="completedTasks">0</span>
+                    <span class="stat-label">Completed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [];
+        let currentFilter = 'all';
+        let editingTaskId = null;
+
+        // Load tasks from memory on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTasks();
+            renderTasks();
+            updateStats();
+        });
+
+        // Add task on Enter key press
+        document.getElementById('taskInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const taskText = input.value.trim();
+            
+            if (taskText === '') {
+                input.style.boxShadow = '0 0 0 2px rgba(255, 107, 107, 0.5)';
+                setTimeout(() => {
+                    input.style.boxShadow = '';
+                }, 2000);
+                return;
+            }
+
+            const task = {
+                id: Date.now(),
+                text: taskText,
+                completed: false,
+                timestamp: new Date().toLocaleString()
+            };
+
+            tasks.unshift(task);
+            input.value = '';
+            
+            // Add success animation
+            input.style.boxShadow = '0 0 0 2px rgba(76, 175, 80, 0.5)';
+            setTimeout(() => {
+                input.style.boxShadow = '';
+            }, 1000);
+
+            saveTasks();
+            renderTasks();
+            updateStats();
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasks();
+                renderTasks();
+                updateStats();
+            }
+        }
+
+        function deleteTask(id) {
+            const taskElement = document.querySelector(`[data-task-id="${id}"]`);
+            if (taskElement) {
+                taskElement.style.animation = 'slideOutRight 0.5s ease-in-out';
+                setTimeout(() => {
+                    tasks = tasks.filter(t => t.id !== id);
+                    saveTasks();
+                    renderTasks();
+                    updateStats();
+                }, 500);
+            }
+        }
+
+        function editTask(id) {
+            if (editingTaskId === id) return;
+            
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            editingTaskId = id;
+            renderTasks();
+        }
+
+        function saveEdit(id) {
+            const input = document.querySelector(`[data-edit-id="${id}"]`);
+            if (!input) return;
+
+            const newText = input.value.trim();
+            if (newText === '') {
+                cancelEdit();
+                return;
+            }
+
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.text = newText;
+                saveTasks();
+            }
+
+            editingTaskId = null;
+            renderTasks();
+            updateStats();
+        }
+
+        function cancelEdit() {
+            editingTaskId = null;
+            renderTasks();
+        }
+
+        function filterTasks(filter) {
+            currentFilter = filter;
+            
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            renderTasks();
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasksContainer');
+            let filteredTasks = tasks;
+
+            // Apply filter
+            if (currentFilter === 'pending') {
+                filteredTasks = tasks.filter(task => !task.completed);
+            } else if (currentFilter === 'completed') {
+                filteredTasks = tasks.filter(task => task.completed);
+            }
+
+            // Show empty state if no tasks
+            if (filteredTasks.length === 0) {
+                const emptyMessage = currentFilter === 'pending' ? 'No pending tasks' : 
+                                  currentFilter === 'completed' ? 'No completed tasks' : 
+                                  'No tasks yet';
+                
+                const emptyIcon = currentFilter === 'pending' ? '⏳' : 
+                                currentFilter === 'completed' ? '🎉' : '📝';
+
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">${emptyIcon}</div>
+                        <h3>${emptyMessage}</h3>
+                        <p>${currentFilter === 'completed' ? 'Complete some tasks to see them here!' : 
+                             currentFilter === 'pending' ? 'All tasks completed! Great job!' : 
+                             'Add your first task to get started!'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Render tasks
+            container.innerHTML = filteredTasks.map(task => {
+                if (editingTaskId === task.id) {
+                    return `
+                        <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
+                            <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} 
+                                   onchange="toggleTask(${task.id})" disabled>
+                            <div class="task-content">
+                                <input type="text" class="edit-input" value="${task.text}" 
+                                       data-edit-id="${task.id}" placeholder="Enter task...">
+                                <div class="edit-actions">
+                                    <button class="save-btn" onclick="saveEdit(${task.id})">Save</button>
+                                    <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
+                        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} 
+                               onchange="toggleTask(${task.id})">
+                        <div class="task-content">
+                            <div class="task-text">${task.text}</div>
+                            <div class="task-time">Created: ${task.timestamp}</div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="edit-btn" onclick="editTask(${task.id})" title="Edit task">✏️</button>
+                            <button class="delete-btn" onclick="deleteTask(${task.id})" title="Delete task">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const pending = total - completed;
+
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('completedTasks').textContent = completed;
+            document.getElementById('pendingTasks').textContent = pending;
+
+            // Animate counter updates
+            animateCounter('totalTasks', total);
+            animateCounter('completedTasks', completed);
+            animateCounter('pendingTasks', pending);
+        }
+
+        function animateCounter(elementId, targetValue) {
+            const element = document.getElementById(elementId);
+            const currentValue = parseInt(element.textContent) || 0;
+            
+            if (currentValue !== targetValue) {
+                element.style.transform = 'scale(1.2)';
+                element.style.transition = 'transform 0.3s ease';
+                
+                setTimeout(() => {
+                    element.style.transform = 'scale(1)';
+                }, 300);
+            }
+        }
+
+        function saveTasks() {
+            // Store in memory during session - no localStorage used
+            // In a real environment, this would save to localStorage
+            // localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            // Load from memory during session - no localStorage used
+            // In a real environment, this would load from localStorage
+            // const saved = localStorage.getItem('tasks');
+            // if (saved) {
+            //     tasks = JSON.parse(saved);
+            // }
+        }
+
+        // Add some CSS animations for better UX
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            
+            .task-item:hover {
+                animation: pulse 0.3s ease-in-out;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
