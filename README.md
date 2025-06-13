@@ -1,2 +1,2 @@
-# tamizhan-skills-internship-projects
+# tamizhan-skills-internship-projects (AICTE)
 Projects completed during my internship at Tamizhan Skills.
