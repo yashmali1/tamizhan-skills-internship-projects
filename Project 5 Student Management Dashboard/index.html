@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎓 Student Management System</h1>
+            <p>Manage your student records efficiently</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="totalStudents">0</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="averageMarks">0</div>
+                <div class="stat-label">Average Marks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="highestMarks">0</div>
+                <div class="stat-label">Highest Marks</div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="dashboard">
+            <!-- Student Form -->
+            <div class="card">
+                <h2>📝 Add New Student</h2>
+                
+                <!-- Message Container -->
+                <div id="messageContainer"></div>
+                
+                <!-- Student Form -->
+                <form id="studentForm">
+                    <div class="form-group">
+                        <label for="studentName">Student Name:</label>
+                        <input type="text" id="studentName" placeholder="Enter full name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registrationNumber">Registration Number:</label>
+                        <input type="text" id="registrationNumber" placeholder="Enter registration number" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="department">Department:</label>
+                        <select id="department" required>
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Mechanical">Mechanical</option>
+                            <option value="Civil">Civil</option>
+                            <option value="Electrical">Electrical</option>
+                            <option value="Information Technology">Information Technology</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="year">Year:</label>
+                        <select id="year" required>
+                            <option value="">Select Year</option>
+                            <option value="1st Year">1st Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="4th Year">4th Year</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="marks">Marks:</label>
+                        <input type="number" id="marks" placeholder="Enter marks (0-100)" min="0" max="100" required>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="addButton">Add Student</button>
+                    <button type="button" class="btn" id="updateButton" style="display: none;">Update Student</button>
+                    <button type="button" class="btn" id="cancelButton" style="display: none;">Cancel</button>
+                </form>
+            </div>
+
+            <!-- Student Records -->
+            <div class="card">
+                <h2>📋 Student Records</h2>
+                
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search students by name...">
+                </div>
+                
+                <!-- Students Table -->
+                <div class="table-container">
+                    <table class="student-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Reg. No.</th>
+                                <th>Department</th>
+                                <th>Year</th>
+                                <th>Marks</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody">
+                            <tr>
+                                <td colspan="6" class="no-data">
+                                    No students added yet. Add your first student!
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // STUDENT MANAGEMENT SYSTEM - JAVASCRIPT CODE
+        // ============================================
+
+        // Global variables
+        let students = []; // Array to store all student data
+        let editingIndex = -1; // Index of student being edited (-1 means not editing)
+
+        // Get references to DOM elements
+        const studentForm = document.getElementById('studentForm');
+        const studentTableBody = document.getElementById('studentTableBody');
+        const searchInput = document.getElementById('searchInput');
+        const messageContainer = document.getElementById('messageContainer');
+        const addButton = document.getElementById('addButton');
+        const updateButton = document.getElementById('updateButton');
+        const cancelButton = document.getElementById('cancelButton');
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+
+        // When the form is submitted
+        studentForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent form from submitting normally
+            addStudent(); // Call our add student function
+        });
+
+        // When user types in search box
+        searchInput.addEventListener('input', function(e) {
+            searchStudents(e.target.value); // Call search function with the typed text
+        });
+
+        // When update button is clicked
+        updateButton.addEventListener('click', function() {
+            updateStudent(); // Call update function
+        });
+
+        // When cancel button is clicked
+        cancelButton.addEventListener('click', function() {
+            cancelEdit(); // Call cancel function
+        });
+
+        // ============================================
+        // MAIN FUNCTIONS
+        // ============================================
+
+        // Function to add a new student
+        function addStudent() {
+            // Get values from form inputs
+            const name = document.getElementById('studentName').value.trim();
+            const regNo = document.getElementById('registrationNumber').value.trim();
+            const dept = document.getElementById('department').value;
+            const year = document.getElementById('year').value;
+            const marks = parseInt(document.getElementById('marks').value);
+
+            // Validate the form data
+            if (!validateForm(name, regNo, dept, year, marks)) {
+                return; // Stop if validation fails
+            }
+
+            // Check if registration number already exists
+            if (isRegistrationNumberExists(regNo)) {
+                showMessage('Registration number already exists!', 'error');
+                return;
+            }
+
+            // Create new student object
+            const newStudent = {
+                id: Date.now(), // Use timestamp as unique ID
+                name: name,
+                registrationNumber: regNo,
+                department: dept,
+                year: year,
+                marks: marks
+            };
+
+            // Add student to our array
+            students.push(newStudent);
+
+            // Update the table display
+            displayStudents(students);
+
+            // Update statistics
+            updateStatistics();
+
+            // Clear the form
+            clearForm();
+
+            // Show success message
+            showMessage('Student added successfully!', 'success');
+
+            console.log('Student added:', newStudent); // For debugging
+            console.log('Total students:', students.length); // For debugging
+        }
+
+        // Function to validate form inputs
+        function validateForm(name, regNo, dept, year, marks) {
+            // Check if any field is empty
+            if (!name || !regNo || !dept || !year || isNaN(marks)) {
+                showMessage('Please fill in all fields correctly!', 'error');
+                return false;
+            }
+
+            // Check if marks are in valid range
+            if (marks < 0 || marks > 100) {
+                showMessage('Marks must be between 0 and 100!', 'error');
+                return false;
+            }
+
+            return true; // All validations passed
+        }
+
+        // Function to check if registration number already exists
+        function isRegistrationNumberExists(regNo) {
+            // Check if any student has the same registration number
+            // (excluding the student being edited)
+            return students.some((student, index) => 
+                student.registrationNumber.toLowerCase() === regNo.toLowerCase() && 
+                index !== editingIndex
+            );
+        }
+
+        // Function to display students in the table
+        function displayStudents(studentsToShow) {
+            const tableBody = document.getElementById('studentTableBody');
+
+            // If no students to show
+            if (studentsToShow.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-data">
+                            ${students.length === 0 ? 'No students added yet. Add your first student!' : 'No students found matching your search.'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Create HTML for each student row
+            const rows = studentsToShow.map((student, index) => `
+                <tr class="new-row">
+                    <td>${student.name}</td>
+                    <td>${student.registrationNumber}</td>
+                    <td>${student.department}</td>
+                    <td>${student.year}</td>
+                    <td>${student.marks}%</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editStudent(${students.indexOf(student)})">
+                            Edit
+                        </button>
+                        <button class="btn btn-delete" onclick="deleteStudent(${students.indexOf(student)})">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Update table body
+            tableBody.innerHTML = rows;
+        }
+
+        // Function to search students by name
+        function searchStudents(searchTerm) {
+            // If search term is empty, show all students
+            if (!searchTerm.trim()) {
+                displayStudents(students);
+                return;
+            }
+
+            // Filter students whose name contains the search term
+            const filteredStudents = students.filter(student =>
+                student.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            // Display filtered results
+            displayStudents(filteredStudents);
+        }
+
+        // Function to edit a student
+        function editStudent(index) {
+            const student = students[index];
+            editingIndex = index;
+
+            // Fill form with student data
+            document.getElementById('studentName').value = student.name;
+            document.getElementById('registrationNumber').value = student.registrationNumber;
+            document.getElementById('department').value = student.department;
+            document.getElementById('year').value = student.year;
+            document.getElementById('marks').value = student.marks;
+
+            // Show update and cancel buttons, hide add button
+            addButton.style.display = 'none';
+            updateButton.style.display = 'inline-block';
+            cancelButton.style.display = 'inline-block';
+
+            showMessage('Editing student. Make changes and click Update.', 'success');
+        }
+
+        // Function to update a student
+        function updateStudent() {
+            // Get values from form
+            const name = document.getElementById('studentName').value.trim();
+            const regNo = document.getElementById('registrationNumber').value.trim();
+            const dept = document.getElementById('department').value;
+            const year = document.getElementById('year').value;
+            const marks = parseInt(document.getElementById('marks').value);
+
+            // Validate form
+            if (!validateForm(name, regNo, dept, year, marks)) {
+                return;
+            }
+
+            // Check for duplicate registration number
+            if (isRegistrationNumberExists(regNo)) {
+                showMessage('Registration number already exists!', 'error');
+                return;
+            }
+
+            // Update student data
+            students[editingIndex] = {
+                ...students[editingIndex], // Keep existing ID
+                name: name,
+                registrationNumber: regNo,
+                department: dept,
+                year: year,
+                marks: marks
+            };
+
+            // Refresh display
+            displayStudents(students);
+            updateStatistics();
+            cancelEdit();
+
+            showMessage('Student updated successfully!', 'success');
+        }
+
+        // Function to cancel editing
+        function cancelEdit() {
+            editingIndex = -1;
+            clearForm();
+
+            // Show add button, hide update and cancel buttons
+            addButton.style.display = 'inline-block';
+            updateButton.style.display = 'none';
+            cancelButton.style.display = 'none';
+        }
+
+        // Function to delete a student
+        function deleteStudent(index) {
+            const student = students[index];
+            
+            // Confirm deletion
+            if (confirm(`Are you sure you want to delete ${student.name}?`)) {
+                // Remove student from array
+                students.splice(index, 1);
+                
+                // Refresh display
+                displayStudents(students);
+                updateStatistics();
+                
+                showMessage('Student deleted successfully!', 'success');
+            }
+        }
+
+        // Function to clear the form
+        function clearForm() {
+            document.getElementById('studentForm').reset();
+        }
+
+        // Function to show messages to user
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+
+            // Clear previous messages
+            messageContainer.innerHTML = '';
+            messageContainer.appendChild(messageDiv);
+
+            // Remove message after 3 seconds
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        // Function to update statistics
+        function updateStatistics() {
+            const totalStudents = students.length;
+            document.getElementById('totalStudents').textContent = totalStudents;
+
+            if (totalStudents > 0) {
+                // Calculate average marks
+                const totalMarks = students.reduce((sum, student) => sum + student.marks, 0);
+                const averageMarks = Math.round(totalMarks / totalStudents);
+                document.getElementById('averageMarks').textContent = averageMarks;
+
+                // Find highest marks
+                const highestMarks = Math.max(...students.map(student => student.marks));
+                document.getElementById('highestMarks').textContent = highestMarks;
+            } else {
+                document.getElementById('averageMarks').textContent = '0';
+                document.getElementById('highestMarks').textContent = '0';
+            }
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        // Initialize the application when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Student Management System loaded successfully!');
+            updateStatistics(); // Update initial statistics
+        });
+
+        // ============================================
+        // END OF JAVASCRIPT CODE
+        // ============================================
+    </script>
+</body>
+</html>
