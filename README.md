@@ -45,17 +45,12 @@ The goal of this project is to develop a personal portfolio website that:
 
 - **HTML5**  
 - **CSS3**  
-- **JavaScript**  
-- *(Optional)* React / Bootstrap  
-- **Hosting**: GitHub Pages or Netlify
+- **JavaScript**   
+- **Hosting**:   Netlify
 
 ---
 
-## 📸 Screenshots
-
-> Add 2–3 website screenshots here (home, project, contact sections)
-
----
+ 
 
 ## 📄 Resume Download
 
@@ -76,10 +71,10 @@ The portfolio features a **"Download Resume"** button which allows visitors to e
 ## 📬 Contact
 
 - 📧 Email: yash@example.com  
-- 💼 LinkedIn: [linkedin.com/in/yashmali](https://linkedin.com/in/yourusername)  
-- 💻 GitHub: [github.com/yashmali](https://github.com/yourusername)  
-- 📱 WhatsApp: +91XXXXXXXXXX  
-- 📷 Instagram: [@yashmali](https://instagram.com/yourusername)
+- 💼 LinkedIn: [linkedin.com/in/yashmali](https://www.linkedin.com/in/yash-mali-21793a251/)  
+- 💻 GitHub: [github.com/yashmali](https://github.com/yashmali1)  
+- 📱 WhatsApp: +918269810540
+- 📷 Instagram: [@yashmali](https://www.instagram.com/yash_shubham_mali/?igsh=MW1tMTQ3ZGZxNGl4ag%3D%3D#)
 
 ---
 
