@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechLux - Premium Electronics Store</title>
+    <link rel="icon" href="logo.jpg">
+    <link rel="stylesheet" href="styles.css">
+    
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="#" class="logo">Yash TechLux</a>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search products..." id="searchInput">
+                <button class="search-btn" onclick="searchProducts()">🔍</button>
+            </div>
+            <button class="cart-icon" onclick="toggleCart()">
+                🛒
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Filters -->
+        <div class="filters-container">
+            <h2 class="filters-title">Filter Products</h2>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Category</label>
+                    <select class="filter-select" id="categoryFilter" onchange="applyFilters()">
+                        <option value="">All Categories</option>
+                        <option value="smartphone">Smartphones</option>
+                        <option value="laptop">Laptops</option>
+                        <option value="headphones">Headphones</option>
+                        <option value="watch">Smartwatches</option>
+                        <option value="camera">Cameras</option>
+                        <option value="tablet">Tablets</option>
+                        <option value="tv">TVs</option>
+                        <option value="gaming">Gaming</option>
+                        <option value="accessories">Accessories</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Price Range</label>
+                    <select class="filter-select" id="priceFilter" onchange="applyFilters()">
+                        <option value="">All Prices</option>
+                        <option value="0-500">$0 - $500</option>
+                        <option value="500-1000">$500 - $1000</option>
+                        <option value="1000-2000">$1000 - $2000</option>
+                        <option value="2000+">$2000+</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Rating</label>
+                    <select class="filter-select" id="ratingFilter" onchange="applyFilters()">
+                        <option value="">All Ratings</option>
+                        <option value="4">4+ Stars</option>
+                        <option value="3">3+ Stars</option>
+                        <option value="2">2+ Stars</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button class="clear-filters" onclick="clearFilters()">Clear Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading products...</p>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid" id="productsGrid">
+            <!-- Products will be dynamically inserted here -->
+        </div>
+
+        <!-- No Results -->
+        <div class="no-results" id="noResults" style="display: none;">
+            <h3>No products found</h3>
+            <p>Try adjusting your search criteria or filters</p>
+        </div>
+    </main>
+
+    <!-- Product Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div class="modal-product" id="modalProduct">
+                <!-- Modal content will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-header">
+            <h2 class="cart-title">Your Cart</h2>
+            <button class="close-cart" onclick="toggleCart()">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- Cart items will be dynamically inserted here -->
+        </div>
+        <div class="cart-summary" id="cartSummary">
+            <!-- Cart summary will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <!-- Cart Notification -->
+    <div class="cart-notification" id="cartNotification">
+        Product added to cart!
+    </div>
+
+    <script>
+        // Expanded product data with more items
+        const products = [
+            {
+                id: 1,
+                name: "iPhone 15 Pro Max",
+                category: "smartphone",
+                price: 1199,
+                rating: 4.8,
+                image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=300&fit=crop",
+                description: "The most advanced iPhone ever with titanium design, A17 Pro chip, and professional camera system."
+            },
+            {
+                id: 2,
+                name: "MacBook Pro 16\"",
+                category: "laptop",
+                price: 2499,
+                rating: 4.7,
+                image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400&h=300&fit=crop",
+                description: "Powerful laptop with M3 chip, stunning Liquid Retina XDR display, and all-day battery life."
+            },
+            {
+                id: 3,
+                name: "AirPods Pro",
+                category: "headphones",
+                price: 249,
+                rating: 4.6,
+                image: "https://images.unsplash.com/photo-1588423771073-b8903fbb85b5?w=400&h=300&fit=crop",
+                description: "Premium wireless earbuds with active noise cancellation and spatial audio."
+            },
+             
+            {
+                id: 5,
+                name: "Canon EOS R5",
+                category: "camera",
+                price: 3899,
+                rating: 4.8,
+                image: "https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=400&h=300&fit=crop",
+                description: "Professional mirrorless camera with 45MP sensor and 8K video recording capabilities."
+            },
+            {
+                id: 6,
+                name: "Sony WH-1000XM5",
+                category: "headphones",
+                price: 399,
+                rating: 4.7,
+                image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=300&fit=crop",
+                description: "Industry-leading noise canceling headphones with exceptional sound quality."
+            },
+            {
+                id: 7,
+                name: "Samsung Galaxy S24 Ultra",
+                category: "smartphone",
+                price: 1299,
+                rating: 4.6,
+                image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop",
+                description: "Flagship Android phone with S Pen, advanced cameras, and powerful performance."
+            },
+            {
+                id: 8,
+                name: "Dell XPS 13",
+                category: "laptop",
+                price: 1299,
+                rating: 4.5,
+                image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=300&fit=crop",
+                description: "Ultra-portable laptop with stunning InfinityEdge display and premium build quality."
+            },
+            {
+                id: 9,
+                name: "Garmin Fenix 7",
+                category: "watch",
+                price: 699,
+                rating: 4.4,
+                image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop",
+                description: "Multi-sport GPS watch with solar charging and comprehensive health monitoring."
+            },
+            {
+                id: 10,
+                name: "iPad Pro 12.9\"",
+                category: "tablet",
+                price: 1099,
+                rating: 4.7,
+                image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400&h=300&fit=crop",
+                description: "Professional tablet with M2 chip, Liquid Retina XDR display, and Apple Pencil support."
+            },
+            {
+                id: 11,
+                name: "Sony A95K OLED TV",
+                category: "tv",
+                price: 2999,
+                rating: 4.9,
+                image: "https://images.unsplash.com/photo-1593784991095-a205069470b6?w=400&h=300&fit=crop",
+                description: "Premium 4K OLED TV with Cognitive Processor XR for stunning picture quality."
+            },
+            {
+                id: 12,
+                name: "PlayStation 5",
+                category: "gaming",
+                price: 499,
+                rating: 4.8,
+                image: "https://images.unsplash.com/photo-1607853202273-797f1c22a38e?w=400&h=300&fit=crop",
+                description: "Next-gen gaming console with ultra-high-speed SSD and immersive 3D audio."
+            },
+            {
+                id: 13,
+                name: "Xbox Series X",
+                category: "gaming",
+                price: 499,
+                rating: 4.7,
+                image: "https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=400&h=300&fit=crop",
+                description: "Powerful gaming console with 12 teraflops of processing power and Quick Resume."
+            },
+             
+            {
+                id: 15,
+                name: "Bose QuietComfort 45",
+                category: "headphones",
+                price: 329,
+                rating: 4.5,
+                image: "https://images.unsplash.com/photo-1639754390580-2e7437267698?w=400&h=300&fit=crop",
+                description: "Premium noise-canceling headphones with world-class audio performance."
+            },
+             
+            {
+                id: 17,
+                name: "LG C2 OLED TV",
+                category: "tv",
+                price: 1999,
+                rating: 4.8,
+                image: "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=400&h=300&fit=crop",
+                description: "Stunning 4K OLED TV with α9 Gen 5 AI Processor and Dolby Vision IQ."
+            },
+            {
+                id: 18,
+                name: "DJI Mavic 3",
+                category: "camera",
+                price: 2199,
+                rating: 4.9,
+                image: "https://images.unsplash.com/photo-1638803040283-7a5ffd48dad5?w=400&h=300&fit=crop",
+                description: "Professional drone with Hasselblad camera and 46 minutes flight time."
+            },
+            {
+                id: 19,
+                name: "Logitech MX Master 3S",
+                category: "accessories",
+                price: 99,
+                rating: 4.7,
+                image: "https://images.unsplash.com/photo-1527814050087-3793815479db?w=400&h=300&fit=crop",
+                description: "Advanced wireless mouse with ultra-fast scrolling and precision tracking."
+            },
+            {
+                id: 20,
+                name: "Samsung 49\" Odyssey G9",
+                category: "gaming",
+                price: 1499,
+                rating: 4.8,
+                image: "https://images.unsplash.com/photo-1627647227768-705244233b56?w=400&h=300&fit=crop",
+                description: "Super ultrawide gaming monitor with 240Hz refresh rate and QLED technology."
+            },
+             
+            
+            {
+                id: 23,
+                name: "ASUS ROG Zephyrus G14",
+                category: "laptop",
+                price: 1599,
+                rating: 4.7,
+                image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=400&h=300&fit=crop",
+                description: "Powerful gaming laptop with AMD Ryzen 9 and NVIDIA RTX 3060 in ultraportable design."
+            },
+            {
+                id: 24,
+                name: "HP Spectre x360",
+                category: "laptop",
+                price: 1399,
+                rating: 4.6,
+                image: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=400&h=300&fit=crop",
+                description: "Premium convertible laptop with 4K OLED touchscreen and long battery life."
+            },
+             
+        ];
+
+        // Global variables
+        let filteredProducts = [...products];
+        let cart = [];
+        let cartOpen = false;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            displayProducts(products);
+            updateCartCount();
+        });
+
+        // Display products in grid
+        function displayProducts(productsToShow) {
+            const grid = document.getElementById('productsGrid');
+            const noResults = document.getElementById('noResults');
+            
+            if (productsToShow.length === 0) {
+                grid.style.display = 'none';
+                noResults.style.display = 'block';
+                return;
+            }
+            
+            grid.style.display = 'grid';
+            noResults.style.display = 'none';
+            
+            grid.innerHTML = productsToShow.map(product => `
+                <div class="product-card" onclick="openModal(${product.id})">
+                    <img src="${product.image}" alt="${product.name}" class="product-image">
+                    <div class="product-info">
+                        <div class="product-category">${product.category}</div>
+                        <h3 class="product-title">${product.name}</h3>
+                        <div class="product-price">$${product.price.toLocaleString()}</div>
+                        <div class="product-rating">
+                            <div class="stars">
+                                ${generateStars(product.rating)}
+                            </div>
+                            <span class="rating-text">${product.rating}/5</span>
+                        </div>
+                        <div class="product-actions">
+                            <button class="btn btn-primary" onclick="event.stopPropagation(); addToCart(${product.id})">
+                                Add to Cart
+                            </button>
+                            <button class="btn btn-secondary" onclick="event.stopPropagation(); openModal(${product.id})">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Generate star rating
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 !== 0;
+            let stars = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<span class="star">★</span>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<span class="star">☆</span>';
+            }
+            
+            const remainingStars = 5 - Math.ceil(rating);
+            for (let i = 0; i < remainingStars; i++) {
+                stars += '<span class="star" style="color: rgba(255, 255, 255, 0.3)">☆</span>';
+            }
+            
+            return stars;
+        }
+
+        // Search functionality
+        function searchProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = products.filter(product => 
+                product.name.toLowerCase().includes(searchTerm) ||
+                product.category.toLowerCase().includes(searchTerm)
+            );
+            filteredProducts = filtered;
+            displayProducts(applyCurrentFilters(filtered));
+        }
+
+        // Real-time search as user types
+        document.getElementById('searchInput').addEventListener('input', function() {
+            searchProducts();
+        });
+
+        // Apply filters
+        function applyFilters() {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const priceFilter = document.getElementById('priceFilter').value;
+            const ratingFilter = document.getElementById('ratingFilter').value;
+            
+            let filtered = [...products];
+            
+            // Apply search filter if search term exists
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filtered = filtered.filter(product => 
+                    product.name.toLowerCase().includes(searchTerm) ||
+                    product.category.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Apply category filter
+            if (categoryFilter) {
+                filtered = filtered.filter(product => product.category === categoryFilter);
+            }
+            
+            // Apply price filter
+            if (priceFilter) {
+                const [min, max] = priceFilter.split('-').map(p => p.replace('+', ''));
+                filtered = filtered.filter(product => {
+                    if (max) {
+                        return product.price >= parseInt(min) && product.price <= parseInt(max);
+                    } else {
+                        return product.price >= parseInt(min);
+                    }
+                });
+            }
+            
+            // Apply rating filter
+            if (ratingFilter) {
+                filtered = filtered.filter(product => product.rating >= parseInt(ratingFilter));
+            }
+            
+            filteredProducts = filtered;
+            displayProducts(filtered);
+        }
+
+        // Apply current filters to a given product array
+        function applyCurrentFilters(productArray) {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const priceFilter = document.getElementById('priceFilter').value;
+            const ratingFilter = document.getElementById('ratingFilter').value;
+            
+            let filtered = [...productArray];
+            
+            if (categoryFilter) {
+                filtered = filtered.filter(product => product.category === categoryFilter);
+            }
+            
+            if (priceFilter) {
+                const [min, max] = priceFilter.split('-').map(p => p.replace('+', ''));
+                filtered = filtered.filter(product => {
+                    if (max) {
+                        return product.price >= parseInt(min) && product.price <= parseInt(max);
+                    } else {
+                        return product.price >= parseInt(min);
+                    }
+                });
+            }
+            
+            if (ratingFilter) {
+                filtered = filtered.filter(product => product.rating >= parseInt(ratingFilter));
+            }
+            
+            return filtered;
+        }
+
+        // Clear all filters
+        function clearFilters() {
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('priceFilter').value = '';
+            document.getElementById('ratingFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            filteredProducts = [...products];
+            displayProducts(products);
+        }
+
+        // Add to cart functionality
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (product) {
+                const existingItem = cart.find(item => item.id === productId);
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    cart.push({...product, quantity: 1});
+                }
+                updateCartCount();
+                showCartNotification();
+                updateCartDisplay();
+            }
+        }
+
+        // Update cart count display
+        function updateCartCount() {
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+        }
+
+        // Show cart notification
+        function showCartNotification() {
+            const notification = document.getElementById('cartNotification');
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Toggle cart modal
+        function toggleCart() {
+            const cartModal = document.getElementById('cartModal');
+            cartOpen = !cartOpen;
+            
+            if (cartOpen) {
+                cartModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                updateCartDisplay();
+            } else {
+                cartModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Update cart display
+        function updateCartDisplay() {
+            const cartItems = document.getElementById('cartItems');
+            const cartSummary = document.getElementById('cartSummary');
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <p class="empty-cart-text">Your cart is empty</p>
+                    </div>
+                `;
+                cartSummary.innerHTML = '';
+                return;
+            }
+            
+            // Display cart items
+            cartItems.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <img src="${item.image}" alt="${item.name}" class="cart-item-image">
+                    <div class="cart-item-details">
+                        <h4 class="cart-item-title">${item.name}</h4>
+                        <div class="cart-item-price">$${item.price.toLocaleString()}</div>
+                        <div class="cart-item-actions">
+                            <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
+                            <span class="cart-item-quantity">${item.quantity}</span>
+                            <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+                            <button class="remove-item" onclick="removeFromCart(${item.id})">Remove</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Calculate total
+            const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            const tax = subtotal * 0.08; // 8% tax
+            const total = subtotal + tax;
+            
+            // Display cart summary
+            cartSummary.innerHTML = `
+                <div class="cart-total">
+                    <span class="total-label">Subtotal:</span>
+                    <span class="total-amount">$${subtotal.toLocaleString()}</span>
+                </div>
+                <div class="cart-total">
+                    <span class="total-label">Tax (8%):</span>
+                    <span class="total-amount">$${tax.toFixed(2)}</span>
+                </div>
+                <div class="cart-total">
+                    <span class="total-label">Total:</span>
+                    <span class="total-amount">$${total.toFixed(2)}</span>
+                </div>
+                <button class="checkout-btn" onclick="checkout()">Proceed to Checkout</button>
+            `;
+        }
+
+        // Update item quantity in cart
+        function updateQuantity(productId, change) {
+            const itemIndex = cart.findIndex(item => item.id === productId);
+            if (itemIndex !== -1) {
+                cart[itemIndex].quantity += change;
+                
+                // Remove item if quantity reaches 0
+                if (cart[itemIndex].quantity <= 0) {
+                    cart.splice(itemIndex, 1);
+                }
+                
+                updateCartCount();
+                updateCartDisplay();
+            }
+        }
+
+        // Remove item from cart
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartCount();
+            updateCartDisplay();
+        }
+
+        // Checkout function
+        function checkout() {
+            if (cart.length === 0) return;
+            
+            alert(`Checkout complete!\n\nTotal: $${cart.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2)}\n\nThank you for your purchase!`);
+            cart = [];
+            updateCartCount();
+            updateCartDisplay();
+            toggleCart();
+        }
+
+        // Open product modal
+        function openModal(productId) {
+            const product = products.find(p => p.id === productId);
+            if (product) {
+                const modal = document.getElementById('productModal');
+                const modalProduct = document.getElementById('modalProduct');
+                
+                modalProduct.innerHTML = `
+                    <div>
+                        <img src="${product.image}" alt="${product.name}" class="modal-image">
+                    </div>
+                    <div class="modal-details">
+                        <h2>${product.name}</h2>
+                        <div class="product-category" style="margin-bottom: 1rem;">${product.category.toUpperCase()}</div>
+                        <div class="product-price" style="font-size: 2rem; margin-bottom: 1rem;">$${product.price.toLocaleString()}</div>
+                        <div class="product-rating" style="margin-bottom: 1.5rem;">
+                            <div class="stars">
+                                ${generateStars(product.rating)}
+                            </div>
+                            <span class="rating-text">${product.rating}/5</span>
+                        </div>
+                        <p class="modal-description">${product.description}</p>
+                        <div class="product-actions">
+                            <button class="btn btn-primary" onclick="addToCart(${product.id}); closeModal();">
+                                Add to Cart
+                            </button>
+                            <button class="btn btn-secondary" onclick="closeModal()">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            const modal = document.getElementById('productModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('productModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+                if (cartOpen) {
+                    toggleCart();
+                }
+            }
+        });
+
+        // Smooth scrolling for better UX
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(26, 26, 46, 0.95)';
+            } else {
+                header.style.background = 'rgba(255, 255, 255, 0.1)';
+            }
+        });
+
+        // Add loading simulation for filters
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('productsGrid').style.display = 'none';
+            document.getElementById('noResults').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Enhanced filter application with loading
+        const originalApplyFilters = applyFilters;
+        applyFilters = function() {
+            showLoading();
+            setTimeout(() => {
+                originalApplyFilters();
+                hideLoading();
+            }, 500);
+        };
+
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate cards on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all product cards
+            function observeCards() {
+                const cards = document.querySelectorAll('.product-card');
+                cards.forEach((card, index) => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(30px)';
+                    card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                    observer.observe(card);
+                });
+            }
+
+            // Initial observation
+            setTimeout(observeCards, 100);
+
+            // Re-observe when products change
+            const originalDisplayProducts = displayProducts;
+            displayProducts = function(productsToShow) {
+                originalDisplayProducts(productsToShow);
+                setTimeout(observeCards, 100);
+            };
+        });
+
+        // Add ripple effect to buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn') || e.target.classList.contains('search-btn') || e.target.classList.contains('cart-icon') || e.target.classList.contains('quantity-btn') || e.target.classList.contains('remove-item') || e.target.classList.contains('checkout-btn')) {
+                const button = e.target;
+                const ripple = document.createElement('span');
+                const rect = button.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${x}px;
+                    top: ${y}px;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple 0.6s ease-out;
+                    pointer-events: none;
+                `;
+                
+                button.style.position = 'relative';
+                button.style.overflow = 'hidden';
+                button.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            }
+        });
+
+        // Add ripple animation
+        const rippleStyle = document.createElement('style');
+        rippleStyle.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(rippleStyle);
+    </script>
+</body>
+</html> 
