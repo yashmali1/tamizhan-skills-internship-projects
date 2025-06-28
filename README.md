@@ -64,9 +64,9 @@ The portfolio features a **"Download Resume"** button which allows visitors to e
 
 ## 📬 Contact
 
-- 📧 Email: yash@example.com  
-- 💼 LinkedIn: [linkedin.com/in/yashmali](https://www.linkedin.com/in/yash-mali-21793a251/)  
-- 💻 GitHub: [github.com/yashmali](https://github.com/yashmali1)  
+- 📧 Email: @yashmali1108@gmail.com
+- 💼 LinkedIn: [linkedin account](https://www.linkedin.com/in/yash-mali-21793a251/)  
+- 💻 GitHub: [github account](https://github.com/yashmali1)  
 - 📱 WhatsApp: +918269810540
 - 📷 Instagram: [@yashmali](https://www.instagram.com/yash_shubham_mali/?igsh=MW1tMTQ3ZGZxNGl4ag%3D%3D#)
 
