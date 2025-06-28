@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Blog - Modern Markdown Platform</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <link rel="icon" type="image/png" href="logo.jpg">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Animated Background Particles -->
+    <div class="bg-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Header with 3D Navigation -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo"> Yash Nexus Blog</div>
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item active" onclick="showEditor()">Write</li>
+                    <li class="nav-item" onclick="showGallery()">Gallery</li>
+                    <li class="nav-item" onclick="showSettings()">Settings</li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1> | YASH | Craft Beautiful Stories</h1>
+            <p>Experience the future of blogging with our 3D-enhanced Markdown editor. Write, preview, and publish with style.</p>
+        </section>
+
+        <!-- Editor Section -->
+        <section id="editor-section">
+            <!-- Blog Post Form -->
+            <div class="input-group">
+                <label for="blog-title">Post Title</label>
+                <input type="text" id="blog-title" placeholder="Enter your amazing blog title...">
+            </div>
+
+            <div class="input-group">
+                <label for="blog-author">Author</label>
+                <input type="text" id="blog-author" placeholder="Your name">
+            </div>
+
+            <!-- Main Editor Layout -->
+            <div class="editor-layout">
+                <!-- Markdown Editor Panel -->
+                <div class="editor-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">✍️ Markdown Editor</div>
+                        <div class="word-count" id="word-count">0 words</div>
+                    </div>
+                    <textarea 
+                        class="markdown-editor" 
+                        id="markdown-input"
+                        placeholder="# Welcome to Nexus Blog!
+
+Start writing your amazing content here using Markdown...
+
+## Features
+- **Bold text** and *italic text*
+- [Links](https://example.com)
+- `Code snippets`
+- > Blockquotes
+- Lists and more!
+
+```javascript
+console.log('Hello, World!');
+```
+
+Happy writing! 🚀"
+                    ></textarea>
+                </div>
+
+                <!-- Live Preview Panel -->
+                <div class="preview-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">👁️ Live Preview</div>
+                        <div class="word-count" id="char-count">0 chars</div>
+                    </div>
+                    <div class="preview-content" id="preview-content">
+                        <p style="color: var(--text-secondary); text-align: center; margin-top: 100px;">
+                            Start typing in the editor to see live preview...
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+
+            <div id="message-area"></div>
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="saveBlog()">
+                    💾 Save Post
+                </button>
+                <button class="btn btn-secondary" onclick="clearEditor()">
+                    🗑️ Clear All
+                </button>
+                <button class="btn btn-accent" onclick="exportMarkdown()">
+                    📤 Export MD
+                </button>
+            </div>
+
+            
+        </section>
+
+        <!-- Blog Gallery Section -->
+        <section id="gallery-section" style="display: none;">
+            <div class="gallery-header">
+                <h2>📚 Your Blog Collection</h2>
+                <p>Explore your previously written masterpieces</p>
+            </div>
+            <div class="blog-grid" id="blog-grid">
+                <!-- Blog cards will be dynamically inserted here -->
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings-section" style="display: none;">
+            <div class="hero">
+                <h2>⚙️ Settings</h2>
+                <p>Customize your blogging experience</p>
+                <div style="margin-top: 2rem;">
+                    <button class="btn btn-secondary" onclick="clearAllBlogs()">
+                        🗑️ Clear All Saved Blogs
+                    </button>
+                    <button class="btn btn-accent" onclick="exportAllBlogs()" style="margin-left: 1rem;">
+                        📦 Export All Blogs
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+
+
+<script>
+    // Blog Management System
+    class BlogManager {
+        constructor() {
+            this.blogs = this.loadBlogs();
+            this.currentBlogId = null;
+            this.initializeEditor();
+            this.setupEventListeners();
+            this.renderGallery();
+        }
+
+        // Initialize the Markdown editor with live preview
+        initializeEditor() {
+            const markdownInput = document.getElementById('markdown-input');
+            const previewContent = document.getElementById('preview-content');
+            
+            // Set up live preview with debouncing for performance
+            let previewTimeout;
+            markdownInput.addEventListener('input', () => {
+                clearTimeout(previewTimeout);
+                previewTimeout = setTimeout(() => {
+                    this.updatePreview();
+                    this.updateWordCount();
+                }, 100);
+            });
+
+            // Initial preview update
+            this.updatePreview();
+            this.updateWordCount();
+        }
+
+        // Set up all event listeners
+        setupEventListeners() {
+            // Auto-save functionality
+            const titleInput = document.getElementById('blog-title');
+            const authorInput = document.getElementById('blog-author');
+            const markdownInput = document.getElementById('markdown-input');
+
+            [titleInput, authorInput, markdownInput].forEach(input => {
+                input.addEventListener('input', () => {
+                    if (this.currentBlogId) {
+                        this.autoSave();
+                    }
+                });
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 's':
+                            e.preventDefault();
+                            this.saveBlog();
+                            break;
+                        case 'n':
+                            e.preventDefault();
+                            this.clearEditor();
+                            break;
+                    }
+                }
+            });
+        }
+
+        // Update live preview using marked.js
+        updatePreview() {
+            const markdownText = document.getElementById('markdown-input').value;
+            const previewContent = document.getElementById('preview-content');
+            
+            if (markdownText.trim()) {
+                try {
+                    // Configure marked options for better rendering
+                    marked.setOptions({
+                        breaks: true,
+                        gfm: true,
+                        headerIds: false,
+                        mangle: false
+                    });
+                    
+                    const htmlContent = marked.parse(markdownText);
+                    previewContent.innerHTML = htmlContent;
+                } catch (error) {
+                    previewContent.innerHTML = `<p style="color: #ef4444;">Preview Error: ${error.message}</p>`;
+                }
+            } else {
+                previewContent.innerHTML = `
+                    <p style="color: var(--text-secondary); text-align: center; margin-top: 100px;">
+                        Start typing in the editor to see live preview...
+                    </p>
+                `;
+            }
+        }
+
+        // Update word and character count
+        updateWordCount() {
+            const text = document.getElementById('markdown-input').value;
+            const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const charCount = text.length;
+            
+            document.getElementById('word-count').textContent = `${wordCount} words`;
+            document.getElementById('char-count').textContent = `${charCount} chars`;
+        }
+
+        // Save blog post
+        saveBlog() {
+            const title = document.getElementById('blog-title').value.trim();
+            const author = document.getElementById('blog-author').value.trim();
+            const content = document.getElementById('markdown-input').value.trim();
+
+            if (!title) {
+                this.showMessage('Please enter a blog title', 'error');
+                return;
+            }
+
+            if (!content) {
+                this.showMessage('Please write some content', 'error');
+                return;
+            }
+
+            const blogId = this.currentBlogId || Date.now().toString();
+            const blog = {
+                id: blogId,
+                title: title,
+                author: author || 'Anonymous',
+                content: content,
+                createdAt: this.currentBlogId ? this.blogs.find(b => b.id === blogId)?.createdAt || new Date().toISOString() : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            // Update or add blog
+            const existingIndex = this.blogs.findIndex(b => b.id === blogId);
+            if (existingIndex !== -1) {
+                this.blogs[existingIndex] = blog;
+                this.showMessage('Blog updated successfully! ✨', 'success');
+            } else {
+                this.blogs.unshift(blog);
+                this.showMessage('Blog saved successfully! 🎉', 'success');
+            }
+
+            this.currentBlogId = blogId;
+            this.saveBlogs();
+            this.renderGallery();
+        }
+
+        // Auto-save functionality
+        autoSave() {
+            const title = document.getElementById('blog-title').value.trim();
+            const content = document.getElementById('markdown-input').value.trim();
+            
+            if (title && content && this.currentBlogId) {
+                // Save silently without showing message
+                this.saveBlog();
+            }
+        }
+
+        // Clear editor
+        clearEditor() {
+            if (document.getElementById('markdown-input').value.trim() || 
+                document.getElementById('blog-title').value.trim()) {
+                if (!confirm('Are you sure you want to clear all content?')) {
+                    return;
+                }
+            }
+
+            document.getElementById('blog-title').value = '';
+            document.getElementById('blog-author').value = '';
+            document.getElementById('markdown-input').value = '';
+            this.currentBlogId = null;
+            this.updatePreview();
+            this.updateWordCount();
+            this.showMessage('Editor cleared', 'success');
+        }
+
+        // Load a blog for editing
+        loadBlog(blogId) {
+            const blog = this.blogs.find(b => b.id === blogId);
+            if (blog) {
+                document.getElementById('blog-title').value = blog.title;
+                document.getElementById('blog-author').value = blog.author;
+                document.getElementById('markdown-input').value = blog.content;
+                this.currentBlogId = blogId;
+                this.updatePreview();
+                this.updateWordCount();
+                this.showEditor();
+                this.showMessage('Blog loaded for editing', 'success');
+            }
+        }
+
+        // Delete a blog
+        deleteBlog(blogId) {
+            if (confirm('Are you sure you want to delete this blog?')) {
+                this.blogs = this.blogs.filter(b => b.id !== blogId);
+                this.saveBlogs();
+                this.renderGallery();
+                
+                // If we're editing the deleted blog, clear the editor
+                if (this.currentBlogId === blogId) {
+                    this.clearEditor();
+                }
+                
+                this.showMessage('Blog deleted', 'success');
+            }
+        }
+
+        // Export single blog as Markdown file
+        exportBlog(blogId) {
+            const blog = this.blogs.find(b => b.id === blogId);
+            if (!blog) return;
+
+            const markdownContent = `# ${blog.title}\n\nBy ${blog.author}\n\n${blog.content}`;
+            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${blog.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            this.showMessage('Blog exported as Markdown file', 'success');
+        }
+
+        // Export all blogs as a zip file
+        exportAllBlogs() {
+            if (this.blogs.length === 0) {
+                this.showMessage('No blogs to export', 'error');
+                return;
+            }
+
+            // In a real implementation, you would use a library like JSZip
+            // For this demo, we'll export the first blog as an example
+            if (this.blogs.length > 0) {
+                this.exportBlog(this.blogs[0].id);
+                this.showMessage('Exported first blog (full export would require JSZip)', 'success');
+            }
+        }
+
+        // Clear all saved blogs
+        clearAllBlogs() {
+            if (this.blogs.length === 0) {
+                this.showMessage('No blogs to clear', 'error');
+                return;
+            }
+
+            if (confirm('Are you sure you want to delete ALL saved blogs? This cannot be undone!')) {
+                this.blogs = [];
+                this.saveBlogs();
+                this.renderGallery();
+                this.clearEditor();
+                this.showMessage('All blogs deleted', 'success');
+            }
+        }
+
+        // Load blogs from localStorage
+        loadBlogs() {
+            const savedBlogs = localStorage.getItem('nexus-blogs');
+            return savedBlogs ? JSON.parse(savedBlogs) : [];
+        }
+
+        // Save blogs to localStorage
+        saveBlogs() {
+            localStorage.setItem('nexus-blogs', JSON.stringify(this.blogs));
+        }
+
+        // Render blog gallery
+        renderGallery() {
+            const blogGrid = document.getElementById('blog-grid');
+            blogGrid.innerHTML = '';
+
+            if (this.blogs.length === 0) {
+                blogGrid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary);">
+                        No blog posts yet. Start writing to see them appear here!
+                    </div>
+                `;
+                return;
+            }
+
+            this.blogs.forEach(blog => {
+                const excerpt = blog.content.length > 150 
+                    ? blog.content.substring(0, 150) + '...' 
+                    : blog.content;
+                
+                const date = new Date(blog.createdAt).toLocaleDateString();
+                
+                const blogCard = document.createElement('div');
+                blogCard.className = 'blog-card';
+                blogCard.innerHTML = `
+                    <h3>${blog.title}</h3>
+                    <div class="meta">By ${blog.author} • ${date}</div>
+                    <div class="excerpt">${excerpt}</div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <a class="read-more" onclick="blogManager.loadBlog('${blog.id}')">
+                            Edit ✏️
+                        </a>
+                        <a class="read-more" onclick="blogManager.exportBlog('${blog.id}')">
+                            Export 📤
+                        </a>
+                        <a class="read-more" style="color: var(--secondary);" onclick="blogManager.deleteBlog('${blog.id}')">
+                            Delete 🗑️
+                        </a>
+                    </div>
+                `;
+                blogGrid.appendChild(blogCard);
+            });
+        }
+
+        // Show message to user
+        showMessage(text, type) {
+            const messageArea = document.getElementById('message-area');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            
+            messageArea.innerHTML = '';
+            messageArea.appendChild(message);
+            
+            // Auto-hide message after 5 seconds
+            setTimeout(() => {
+                message.style.opacity = '0';
+                setTimeout(() => message.remove(), 500);
+            }, 5000);
+        }
+
+        // Navigation functions
+        showEditor() {
+            document.getElementById('editor-section').style.display = 'block';
+            document.getElementById('gallery-section').style.display = 'none';
+            document.getElementById('settings-section').style.display = 'none';
+            this.updateNavItems('editor');
+        }
+
+        showGallery() {
+            document.getElementById('editor-section').style.display = 'none';
+            document.getElementById('gallery-section').style.display = 'block';
+            document.getElementById('settings-section').style.display = 'none';
+            this.updateNavItems('gallery');
+            this.renderGallery();
+        }
+
+        showSettings() {
+            document.getElementById('editor-section').style.display = 'none';
+            document.getElementById('gallery-section').style.display = 'none';
+            document.getElementById('settings-section').style.display = 'block';
+            this.updateNavItems('settings');
+        }
+
+        updateNavItems(activeItem) {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if ((activeItem === 'editor' && item.textContent.includes('Write')) ||
+                    (activeItem === 'gallery' && item.textContent.includes('Gallery')) ||
+                    (activeItem === 'settings' && item.textContent.includes('Settings'))) {
+                    item.classList.add('active');
+                }
+            });
+        }
+    }
+
+    // Initialize the blog manager when the page loads
+    const blogManager = new BlogManager();
+
+    // Global functions for button clicks
+    function saveBlog() {
+        blogManager.saveBlog();
+    }
+
+    function clearEditor() {
+        blogManager.clearEditor();
+    }
+
+    function exportMarkdown() {
+        if (!blogManager.currentBlogId) {
+            blogManager.showMessage('Please save the blog first', 'error');
+            return;
+        }
+        blogManager.exportBlog(blogManager.currentBlogId);
+    }
+
+    function showEditor() {
+        blogManager.showEditor();
+    }
+
+    function showGallery() {
+        blogManager.showGallery();
+    }
+
+    function showSettings() {
+        blogManager.showSettings();
+    }
+
+    function clearAllBlogs() {
+        blogManager.clearAllBlogs();
+    }
+
+    function exportAllBlogs() {
+        blogManager.exportAllBlogs();
+    }
+</script>
+</body>
+</html>
