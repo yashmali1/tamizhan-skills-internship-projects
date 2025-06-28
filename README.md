@@ -11,9 +11,9 @@ Projects completed during my internship at Tamizhan Skills under the AICTE Virtu
 ## 🎯 Objective
 
 The goal of this project is to develop a personal portfolio website that:
-- Highlights MY **skills**, **education**, **certifications**, **projects**, and **achievements**
+- Highlights My **skills**, **education**, **certifications**, **projects**, and **achievements**
 - Includes a downloadable **PDF resume**
-- Reflects your **personality and creativity**
+- Reflects My **personality and creativity**
 - Is responsive and accessible across devices
 
 ---
