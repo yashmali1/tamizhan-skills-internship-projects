@@ -6,13 +6,7 @@ Projects completed during my internship at Tamizhan Skills under the AICTE Virtu
 
 ---
 
-## 🧩 Problem Statement
-
-In today's digital age, having an online presence is essential.  
-Students and job seekers often lack a professional and structured way to showcase their skills, achievements, and projects.  
-A personal portfolio website solves this by serving as a digital resume that is accessible anytime, anywhere.
-
----
+ 
 
 ## 🎯 Objective
 
