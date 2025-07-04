@@ -28,7 +28,7 @@ The goal of this project is to develop a **Blogging Platform** where users can:
 
 ## 🔗 Live Demo
 
-👉 [Click here to view the live blog website](#) *(https://musical-selkie-586cb7.netlify.app/)*
+👉 [Click here to view the live blog website](https://musical-selkie-586cb7.netlify.app/) 
 
 ---
 
