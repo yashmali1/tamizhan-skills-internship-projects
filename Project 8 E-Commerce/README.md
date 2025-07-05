@@ -1,3 +1,12 @@
+Self screen recording with voice over explanation of the project
+
+> ⚠️ Due to GitHub's file size limitations, the screen recording video could not be uploaded directly to this repository.  
+> Therefore, I have uploaded the video on YouTube for easy access.  
+> 👉  [Click here to watch the demo video](https://youtu.be/DFwyOTGi1F4?si=JOkNqrIAQPPCoewi)
+
+
+
+
 
 💼 Project 8: E-Commerce Product Listing Page
 
